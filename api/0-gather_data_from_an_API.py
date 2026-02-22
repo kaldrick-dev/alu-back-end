@@ -14,13 +14,15 @@ if __name__ == "__main__":
         user_id = int(sys.argv[1])
         user = json.loads(
             urlopen(
-                f"https://jsonplaceholder.typicode.com/users/{user_id}",
+                "https://jsonplaceholder.typicode.com/users/{}".format(user_id),
                 timeout=10,
             ).read()
         )
         todos = json.loads(
             urlopen(
-                f"https://jsonplaceholder.typicode.com/todos?userId={user_id}",
+                "https://jsonplaceholder.typicode.com/todos?userId={}".format(
+                    user_id
+                ),
                 timeout=10,
             ).read()
         )
