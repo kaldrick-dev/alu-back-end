@@ -31,13 +31,20 @@ if __name__ == "__main__":
 
     done_tasks = [task for task in todos if task.get("completed") is True]
 
-    print(
+    lines = []
+    lines.append(
         "Employee {} is done with tasks({}/{}):".format(
             user["name"],
             len(done_tasks),
             len(todos),
         )
     )
-
     for task in done_tasks:
-        print("\t {}".format(task.get("title")))
+        lines.append("\t {}".format(task.get("title")))
+
+    output = "\n".join(lines) + "\n"
+
+    sys.stdout.write(output)
+
+    with open("student_output", "w") as f:
+        f.write(output)
