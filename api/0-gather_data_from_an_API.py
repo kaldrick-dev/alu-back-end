@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 """Gather data from an API."""
 
-import requests
+import json
 import sys
+from urllib.request import urlopen
 
 
 if __name__ == "__main__":
@@ -11,20 +12,18 @@ if __name__ == "__main__":
 
     try:
         user_id = int(sys.argv[1])
-
-        user_resp = requests.get(
-            f"https://jsonplaceholder.typicode.com/users/{user_id}",
-            timeout=10,
+        user = json.loads(
+            urlopen(
+                f"https://jsonplaceholder.typicode.com/users/{user_id}",
+                timeout=10,
+            ).read()
         )
-        todos_resp = requests.get(
-            f"https://jsonplaceholder.typicode.com/todos?userId={user_id}",
-            timeout=10,
+        todos = json.loads(
+            urlopen(
+                f"https://jsonplaceholder.typicode.com/todos?userId={user_id}",
+                timeout=10,
+            ).read()
         )
-        user_resp.raise_for_status()
-        todos_resp.raise_for_status()
-
-        user = user_resp.json()
-        todos = todos_resp.json()
     except Exception:
         sys.exit(1)
 
@@ -32,7 +31,7 @@ if __name__ == "__main__":
 
     print(
         "Employee {} is done with tasks({}/{}):".format(
-            user.get("name"),
+            user["name"],
             len(done_tasks),
             len(todos),
         )
