@@ -1,44 +1,55 @@
 #!/usr/bin/python3
-"""Export an employee TODO list to CSV."""
+"""
+Fetch and display an employee's TODO list progress
+from https://jsonplaceholder.typicode.com
+"""
 
 import csv
-import json
+import requests
 import sys
-from urllib.request import urlopen
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 2:
+        print("Usage: python3 0-gather_data_from_an_API.py <employee_id>")
         sys.exit(1)
 
     try:
-        user_id = int(sys.argv[1])
-        user = json.loads(
-            urlopen(
-                "https://jsonplaceholder.typicode.com/users/{}".format(user_id),
-                timeout=10,
-            ).read()
-        )
-        todos = json.loads(
-            urlopen(
-                "https://jsonplaceholder.typicode.com/todos?userId={}".format(
-                    user_id
-                ),
-                timeout=10,
-            ).read()
-        )
-    except Exception:
+        employee_id = int(sys.argv[1])
+    except ValueError:
+        print("Employee ID must be an integer")
         sys.exit(1)
 
-    file_name = "{}.csv".format(user_id)
-    with open(file_name, "w", newline="") as csv_file:
-        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+    base_url = "https://jsonplaceholder.typicode.com"
+
+    # Fetch employee info
+    user_resp = requests.get(f"{base_url}/users/{employee_id}")
+    if user_resp.status_code != 200:
+        sys.exit(1)
+
+    user = user_resp.json()
+    user_id = user.get("id")
+    username = user.get("username")
+
+    # Fetch todos
+    todos_resp = requests.get(f"{base_url}/todos",
+                              params={"userId": employee_id})
+    if todos_resp.status_code != 200:
+        sys.exit(1)
+
+    todos = todos_resp.json()
+
+    filename = f"{user_id}.csv"
+    with open(filename, mode="w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+
         for task in todos:
-            writer.writerow(
-                [
-                    user_id,
-                    user["username"],
-                    task["completed"],
-                    task["title"],
-                ]
-            )
+            writer.writerow([
+                user_id,
+                username,
+                task.get("completed"),
+                task.get("title")
+            ])
+
+if __name__ == "__main__":
+    main()
