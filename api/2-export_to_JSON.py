@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Gather data from an API."""
+"""Export an employee TODO list to JSON."""
 
 import json
 import sys
@@ -29,15 +29,17 @@ if __name__ == "__main__":
     except Exception:
         sys.exit(1)
 
-    done_tasks = [task for task in todos if task.get("completed") is True]
+    data = {
+        str(user_id): [
+            {
+                "task": task["title"],
+                "completed": task["completed"],
+                "username": user["username"],
+            }
+            for task in todos
+        ]
+    }
 
-    print(
-        "Employee {} is done with tasks({}/{}):".format(
-            user["name"],
-            len(done_tasks),
-            len(todos),
-        )
-    )
-
-    for task in done_tasks:
-        print("\t {}".format(task.get("title")))
+    file_name = "{}.json".format(user_id)
+    with open(file_name, "w") as json_file:
+        json.dump(data, json_file)

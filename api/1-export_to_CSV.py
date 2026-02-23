@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-"""Gather data from an API."""
+"""Export an employee TODO list to CSV."""
 
+import csv
 import json
 import sys
 from urllib.request import urlopen
@@ -29,15 +30,15 @@ if __name__ == "__main__":
     except Exception:
         sys.exit(1)
 
-    done_tasks = [task for task in todos if task.get("completed") is True]
-
-    print(
-        "Employee {} is done with tasks({}/{}):".format(
-            user["name"],
-            len(done_tasks),
-            len(todos),
-        )
-    )
-
-    for task in done_tasks:
-        print("\t {}".format(task.get("title")))
+    file_name = "{}.csv".format(user_id)
+    with open(file_name, "w", newline="") as csv_file:
+        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+        for task in todos:
+            writer.writerow(
+                [
+                    user_id,
+                    user["username"],
+                    task["completed"],
+                    task["title"],
+                ]
+            )
