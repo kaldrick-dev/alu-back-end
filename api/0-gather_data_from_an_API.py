@@ -15,9 +15,10 @@ def main():
     employee_id = int(sys.argv[1])
 
     base_url = "https://jsonplaceholder.typicode.com"
+    user_url = f"{base_url}/users/{employee_id}"
 
     try:
-        with urllib.request.urlopen(f"{base_url}/users/{employee_id}") as response:
+        with urllib.request.urlopen(user_url) as response:
             user = json.loads(response.read().decode("utf-8"))
     except Exception:
         return
