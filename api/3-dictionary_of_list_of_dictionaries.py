@@ -7,26 +7,31 @@ import requests
 
 def main():
     """Main function."""
+    users_url = "https://jsonplaceholder.typicode.com/users"
     todo_url = "https://jsonplaceholder.typicode.com/todos"
 
-    response = requests.get(todo_url)
+    users_response = requests.get(users_url)
+    todos_response = requests.get(todo_url)
+
+    usernames = {}
+    for user in users_response.json():
+        usernames[user.get("id")] = user.get("username")
 
     output = {}
 
-    for todo in response.json():
+    for todo in todos_response.json():
         user_id = todo.get("userId")
-        if user_id not in output:
-            output[user_id] = []
-            user_url = "https://jsonplaceholder.typicode.com/users/{}".format(
-                user_id)
-            user_name = requests.get(user_url).json().get("username")
+        user_id_str = str(user_id)
+        if user_id_str not in output:
+            output[user_id_str] = []
 
-        output[user_id].append(
+        output[user_id_str].append(
             {
-                "username": user_name,
+                "username": usernames.get(user_id),
                 "task": todo.get("title"),
                 "completed": todo.get("completed")
-            })
+            }
+        )
 
     with open("todo_all_employees.json", "w") as file:
         json.dump(output, file)
