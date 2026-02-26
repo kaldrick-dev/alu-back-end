@@ -1,8 +1,5 @@
 #!/usr/bin/python3
-"""
-Fetch and display an employee's TODO list progress
-from https://jsonplaceholder.typicode.com
-"""
+"""Export employee TODO data from API to a CSV file."""
 
 import csv
 import requests
@@ -10,46 +7,32 @@ import sys
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 0-gather_data_from_an_API.py <employee_id>")
-        sys.exit(1)
+    """Main function."""
+    user_id = int(sys.argv[1])
+    todo_url = "https://jsonplaceholder.typicode.com/todos"
+    user_url = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        print("Employee ID must be an integer")
-        sys.exit(1)
+    file_content = []
 
-    base_url = "https://jsonplaceholder.typicode.com"
+    response = requests.get(todo_url)
+    user_name = requests.get(user_url).json().get("username")
 
-    # Fetch employee info
-    user_resp = requests.get(f"{base_url}/users/{employee_id}")
-    if user_resp.status_code != 200:
-        sys.exit(1)
+    for todo in response.json():
+        if todo.get("userId") == user_id:
+            file_content.append(
+                [str(user_id),
+                 user_name,
+                 todo.get("completed"),
+                 "{}".format(todo.get("title"))])
 
-    user = user_resp.json()
-    user_id = user.get("id")
-    username = user.get("username")
+    file_name = "{}.csv".format(user_id)
+    with open(file_name, "w", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+        for row in file_content:
+            for item in row:
+                str(item)
+            csv_writer.writerow(row)
 
-    # Fetch todos
-    todos_resp = requests.get(f"{base_url}/todos",
-                              params={"userId": employee_id})
-    if todos_resp.status_code != 200:
-        sys.exit(1)
-
-    todos = todos_resp.json()
-
-    filename = f"{user_id}.csv"
-    with open(filename, mode="w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-
-        for task in todos:
-            writer.writerow([
-                user_id,
-                username,
-                task.get("completed"),
-                task.get("title")
-            ])
 
 if __name__ == "__main__":
     main()

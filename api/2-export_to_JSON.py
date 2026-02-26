@@ -1,8 +1,5 @@
 #!/usr/bin/python3
-"""
-Fetch and display an employee's TODO list progress
-from https://jsonplaceholder.typicode.com
-"""
+"""Export employee TODO data from API to a JSON file."""
 
 import json
 import requests
@@ -10,48 +7,28 @@ import sys
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 0-gather_data_from_an_API.py <employee_id>")
-        sys.exit(1)
+    """Main function."""
+    user_id = int(sys.argv[1])
+    todo_url = "https://jsonplaceholder.typicode.com/todos"
+    user_url = "https://jsonplaceholder.typicode.com/users/{}".format(user_id)
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        print("Employee ID must be an integer")
-        sys.exit(1)
+    response = requests.get(todo_url)
+    user_name = requests.get(user_url).json().get("username")
+    user_data = []
+    output = {user_id: user_data}
 
-    base_url = "https://jsonplaceholder.typicode.com"
+    for todo in response.json():
+        if todo.get("userId") == user_id:
+            user_data.append(
+                {
+                    "task": todo.get("title"),
+                    "completed": todo.get("completed"),
+                    "username": user_name,
+                })
+    file_name = "{}.json".format(user_id)
+    with open(file_name, "w") as file:
+        json.dump(output, file)
 
-    # Fetch employee info
-    user_resp = requests.get(f"{base_url}/users/{employee_id}")
-    if user_resp.status_code != 200:
-        sys.exit(1)
-
-    user = user_resp.json()
-    user_id = user.get("id")
-    username = user.get("username")
-
-    # Fetch todos
-    todos_resp = requests.get(f"{base_url}/todos",
-                              params={"userId": employee_id})
-    if todos_resp.status_code != 200:
-        sys.exit(1)
-
-    todos = todos_resp.json()
-
-    tasks = []
-    for task in todos:
-        tasks.append({
-            "task": task.get("title"),
-            "completed": task.get("completed"),
-            "username": username
-        })
-
-    filename = f"{user_id}.json"
-    data = {str(user_id): tasks}
-
-    with open(filename, mode="w", encoding="utf-8") as jsonfile:
-        json.dump(data, jsonfile)
 
 if __name__ == "__main__":
     main()

@@ -1,50 +1,36 @@
 #!/usr/bin/python3
-"""
-Fetch and display an employee's TODO list progress
-from https://jsonplaceholder.typicode.com
-"""
+"""Export all employees TODO data from API to a JSON dictionary."""
 
 import json
 import requests
-import sys
 
 
 def main():
-    base_url = "https://jsonplaceholder.typicode.com"
+    """Main function."""
+    todo_url = "https://jsonplaceholder.typicode.com/todos"
 
-    # Fetch employee info
-    users_resp = requests.get(f"{base_url}/users")
-    if users_resp.status_code != 200:
-        sys.exit(1)
+    response = requests.get(todo_url)
 
-    users = users_resp.json()
+    output = {}
 
-    # Fetch todos
-    todos_resp = requests.get(f"{base_url}/todos")
-    todos = todos_resp.json()
+    for todo in response.json():
+        user_id = todo.get("userId")
+        if user_id not in output:
+            output[user_id] = []
+            user_url = "https://jsonplaceholder.typicode.com/users/{}".format(
+                user_id)
+            user_name = requests.get(user_url).json().get("username")
 
-    user_map = {}
-    for user in users:
-        user_map[user.get('id')] = user.get('username')
+        output[user_id].append(
+            {
+                "username": user_name,
+                "task": todo.get("title"),
+                "completed": todo.get("completed")
+            })
 
-    all_tasks = {}
-    for task in todos:
-        user_id = task.get('userId')
-        user_id_str = str(user_id)
+    with open("todo_all_employees.json", "w") as file:
+        json.dump(output, file)
 
-        if user_id_str not in all_tasks:
-            all_tasks[user_id_str] = []
-
-        all_tasks[user_id_str].append({
-            "username": user_map[user_id],
-            "task": task.get('title'),
-            "completed": task.get('completed')
-        })
-
-    filename = "todo_all_employees.json"
-
-    with open(filename, mode="w", encoding="utf-8") as jsonfile:
-        json.dump(all_tasks, jsonfile)
 
 if __name__ == "__main__":
     main()
