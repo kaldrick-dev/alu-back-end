@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Fetch and display an employee's TODO list progress.
-"""
+"""Export employee TODO list progress from JSONPlaceholder."""
 
 import json
 import sys
@@ -18,23 +16,32 @@ def main():
         return
 
     base_url = "https://jsonplaceholder.typicode.com"
-    user_url = f"{base_url}/users/{employee_id}"
+    users_url = f"{base_url}/users"
+    todos_url = f"{base_url}/todos"
 
     try:
-        with urllib.request.urlopen(user_url) as response:
-            user = json.loads(response.read().decode("utf-8"))
+        with urllib.request.urlopen(users_url) as response:
+            users = json.loads(response.read().decode("utf-8"))
     except Exception:
         return
 
-    employee_name = user.get("name")
+    employee = None
+    for user in users:
+        if user.get("id") == employee_id:
+            employee = user
+            break
 
-    todos_url = f"{base_url}/todos?userId={employee_id}"
+    if employee is None:
+        return
+
+    employee_name = employee.get("name")
     try:
         with urllib.request.urlopen(todos_url) as response:
-            todos = json.loads(response.read().decode("utf-8"))
+            all_todos = json.loads(response.read().decode("utf-8"))
     except Exception:
         return
 
+    todos = [todo for todo in all_todos if todo.get("userId") == employee_id]
     total_tasks = len(todos)
     completed_tasks = [t for t in todos if t.get("completed") is True]
     done_tasks = len(completed_tasks)
