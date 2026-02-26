@@ -1,41 +1,35 @@
 #!/usr/bin/python3
 """
-Fetch and display an employee's TODO list progress
-from https://jsonplaceholder.typicode.com
+Fetch and display an employee's TODO list progress.
 """
 
-import requests
 import sys
+import json
+import urllib.request
 
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 0-gather_data_from_an_API.py <employee_id>")
-        sys.exit(1)
+        return
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        print("Employee ID must be an integer")
-        sys.exit(1)
+    employee_id = int(sys.argv[1])
 
     base_url = "https://jsonplaceholder.typicode.com"
 
-    
-    user_resp = requests.get(f"{base_url}/users/{employee_id}")
-    if user_resp.status_code != 200:
-        sys.exit(1)
+    try:
+        with urllib.request.urlopen(f"{base_url}/users/{employee_id}") as response:
+            user = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return
 
-    user = user_resp.json()
     employee_name = user.get("name")
 
-    todos_resp = requests.get(f"\
-    {base_url}/todos", params={"userId": employee_id})
-
-    if todos_resp.status_code != 200:
-        sys.exit(1)
-
-    todos = todos_resp.json()
+    todos_url = f"{base_url}/todos?userId={employee_id}"
+    try:
+        with urllib.request.urlopen(todos_url) as response:
+            todos = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return
 
     total_tasks = len(todos)
     completed_tasks = [t for t in todos if t.get("completed") is True]
