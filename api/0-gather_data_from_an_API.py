@@ -3,8 +3,8 @@
 Fetch and display an employee's TODO list progress.
 """
 
-import sys
 import json
+import sys
 import urllib.request
 
 
@@ -12,7 +12,10 @@ def main():
     if len(sys.argv) != 2:
         return
 
-    employee_id = int(sys.argv[1])
+    try:
+        employee_id = int(sys.argv[1])
+    except ValueError:
+        return
 
     base_url = "https://jsonplaceholder.typicode.com"
     user_url = f"{base_url}/users/{employee_id}"
