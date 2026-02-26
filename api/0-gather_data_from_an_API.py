@@ -1,59 +1,36 @@
 #!/usr/bin/python3
-"""Export employee TODO list progress from JSONPlaceholder."""
+"""Script to get todos for a user from API"""
 
-import json
+import requests
 import sys
-import urllib.request
 
 
 def main():
-    if len(sys.argv) != 2:
-        return
+    """main function"""
+    user_id = int(sys.argv[1])
+    todo_url = 'https://jsonplaceholder.typicode.com/todos'
+    user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
 
-    try:
-        employee_id = int(sys.argv[1])
-    except ValueError:
-        return
+    response = requests.get(todo_url)
 
-    base_url = "https://jsonplaceholder.typicode.com"
-    users_url = f"{base_url}/users"
-    todos_url = f"{base_url}/todos"
+    total_questions = 0
+    completed = []
+    for todo in response.json():
 
-    try:
-        with urllib.request.urlopen(users_url) as response:
-            users = json.loads(response.read().decode("utf-8"))
-    except Exception:
-        return
+        if todo['userId'] == user_id:
+            total_questions += 1
 
-    employee = None
-    for user in users:
-        if user.get("id") == employee_id:
-            employee = user
-            break
+            if todo['completed']:
+                completed.append(todo['title'])
 
-    if employee is None:
-        return
+    user_name = requests.get(user_url).json()['name']
 
-    employee_name = employee.get("name")
-    try:
-        with urllib.request.urlopen(todos_url) as response:
-            all_todos = json.loads(response.read().decode("utf-8"))
-    except Exception:
-        return
-
-    todos = [todo for todo in all_todos if todo.get("userId") == employee_id]
-    total_tasks = len(todos)
-    completed_tasks = [t for t in todos if t.get("completed") is True]
-    done_tasks = len(completed_tasks)
-
-    print(
-        f"Employee {employee_name} is done "
-        f"with tasks({done_tasks}/{total_tasks}):"
-    )
-
-    for task in completed_tasks:
-        print(f"\t {task.get('title')}")
+    printer = ("Employee {} is done with tasks({}/{}):".format(user_name,
+               len(completed), total_questions))
+    print(printer)
+    for q in completed:
+        print("\t {}".format(q))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
